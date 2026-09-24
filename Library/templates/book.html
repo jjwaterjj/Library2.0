@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ book['title'] }}</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body class="{{ (book['genre'] or 'default')|lower|replace(' ', '-') }}">
+
+    <h1>Book Details</h1>
+
+    {% if book['image'] %}
+        <img
+            src="{{ url_for('static', filename='images/' + book['image']) }}"
+            alt="{{ book['title'] }}"
+            class="book-image book-detail-image"
+        >
+    {% endif %}
+
+    <h2>{{ book['title'] }}</h2>
+
+    <p><strong>ID:</strong> {{ book['id'] }}</p>
+    <p><strong>Author:</strong> {{ book['author'] }}</p>
+    <p><strong>Year:</strong> {{ book['year'] }}</p>
+    <p><strong>Genre:</strong> {{ book['genre'] }}</p>
+    <p><strong>Description:</strong> {{ book['description'] }}</p>
+
+    {% if session.get('role') == 'admin' %}
+
+        <a href="{{ url_for('edit', id=book['id']) }}">Edit Book</a>
+
+        <form method="POST"
+              action="{{ url_for('delete', id=book['id']) }}"
+              onsubmit="return confirm('Delete this book?');">
+
+            <button type="submit" class="delete-button">Delete Book</button>
+
+        </form>
+
+    {% endif %}
+
+    <br>
+
+    <a href="{{ url_for('index') }}">Back to Library</a>
+
+</body>
+</html>

@@ -1,0 +1,149 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Library</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body class="{{ (current_genre or 'default')|lower|replace(' ', '-') }}">
+
+    <header class="top-header">
+        <h1>My Library</h1>
+
+        <div class="auth-buttons">
+
+            {% if session.get('user_id') %}
+
+                <span class="welcome">
+                    Hello, {{ session.get('username') }}
+                </span>
+
+                {% if session.get('role') == 'admin' %}
+                    <span class="admin-badge">ADMIN</span>
+                {% endif %}
+
+                <form method="POST" action="{{ url_for('auth.logout') }}">
+                    <button type="submit">Log Out</button>
+                </form>
+
+            {% else %}
+
+                <a href="{{ url_for('auth.signup') }}">Sign Up</a>
+                <a href="{{ url_for('auth.login') }}">Log In</a>
+
+            {% endif %}
+
+        </div>
+    </header>
+
+    <form method="GET" action="{{ url_for('index') }}">
+
+        <input
+            type="text"
+            name="search"
+            placeholder="Search books..."
+            value="{{ search }}"
+        >
+
+        {% if current_genre %}
+            <input type="hidden" name="genre" value="{{ current_genre }}">
+        {% endif %}
+
+        <button type="submit">Search</button>
+
+    </form>
+
+    <form method="GET" action="{{ url_for('index') }}">
+
+        {% if search %}
+            <input type="hidden" name="search" value="{{ search }}">
+        {% endif %}
+
+        <select name="genre">
+            <option value="">All Genres</option>
+
+            {% for genre in genres %}
+                <option value="{{ genre }}"
+                    {% if current_genre == genre %}selected{% endif %}>
+                    {{ genre }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Filter</button>
+
+    </form>
+
+    {% if session.get('role') == 'admin' %}
+        <div class="admin-controls">
+            <a href="{{ url_for('add') }}">+ Add Book</a>
+        </div>
+    {% endif %}
+
+    <hr>
+
+    <!-- Books -->
+    {% if books %}
+
+        {% for book in books %}
+
+            <div class="book">
+
+                {% if book['image'] %}
+                    <img
+                        src="{{ url_for('static', filename='images/' + book['image']) }}"
+                        alt="{{ book['title'] }}"
+                        class="book-image"
+                    >
+                {% endif %}
+
+                <h2>
+                    <a class="book-title"
+                       href="{{ url_for('book', id=book['id']) }}">
+                        {{ book['title'] }}
+                    </a>
+                </h2>
+
+                <p><strong>Author:</strong> {{ book['author'] }}</p>
+                <p><strong>Year:</strong> {{ book['year'] }}</p>
+                <p><strong>Genre:</strong> {{ book['genre'] }}</p>
+                <p><strong>Description:</strong> {{ book['description'] }}</p>
+
+                {% if session.get('role') == 'admin' %}
+
+                    <a href="{{ url_for('edit', id=book['id']) }}">Edit</a>
+
+                    <form method="POST"
+                          action="{{ url_for('delete', id=book['id']) }}"
+                          class="delete-form"
+                          onsubmit="return confirm('Delete this book?');">
+
+                        <button type="submit" class="delete-button">
+                            Delete
+                        </button>
+
+                    </form>
+
+                {% endif %}
+
+            </div>
+
+            <hr>
+
+        {% endfor %}
+
+    {% else %}
+
+        <p>No books found.</p>
+
+    {% endif %}
+
+</body>
+</html>

@@ -1,0 +1,259 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #b5651d;
+    font-family: Arial, sans-serif;
+    margin: 40px;
+}
+
+form {
+    margin-bottom: 20px;
+}
+
+input,
+textarea {
+    display: block;
+    margin: 10px 0;
+    padding: 10px;
+    width: 300px;
+    max-width: 100%;
+    border: 1px solid #aaa;
+    border-radius: 5px;
+    font-family: Arial, sans-serif;
+}
+
+textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+select {
+    padding: 8px;
+    margin-right: 8px;
+}
+
+a,
+button {
+    display: inline-block;
+    text-decoration: none;
+    background-color: #8B5A2B;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 5px;
+    margin-right: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+a:hover,
+button:hover {
+    background-color: #6F4E37;
+    opacity: 0.85;
+}
+
+.book-title {
+    background: none;
+    color: inherit;
+    padding: 0;
+    margin: 0;
+}
+
+.book-title:hover {
+    background: none;
+    text-decoration: underline;
+}
+
+.top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 25px;
+}
+
+.top-header h1 {
+    margin: 0;
+}
+
+.auth-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.auth-buttons form {
+    margin: 0;
+}
+
+.welcome {
+    font-weight: bold;
+}
+
+.admin-badge {
+    background-color: #2f6b3a;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.admin-controls {
+    margin: 20px 0;
+}
+
+.delete-form {
+    display: inline-block;
+    margin: 0;
+}
+
+.delete-button {
+    background-color: #a32020;
+}
+
+.delete-button:hover {
+    background-color: #7d1515;
+}
+.book {
+    margin-bottom: 16px;
+}
+
+.book-image {
+    width: 150px;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+    margin-bottom: 10px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.book-detail-image {
+    width: 220px;
+    height: 320px;
+}
+
+.auth-container {
+    max-width: 400px;
+    margin: 60px auto;
+    padding: 30px;
+    background: #f5e6d3;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.auth-container h1 {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.auth-container input {
+    width: 100%;
+}
+
+.auth-container button {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.auth-container p {
+    text-align: center;
+}
+
+.error {
+    color: #b00020;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+body.default {
+    background-color: #D2B48C;
+    color: #3E2723;
+}
+
+body.default a,
+body.default button {
+    background-color: #8B5A2B;
+    color: white;
+}
+
+body.fantasy {
+    background-color: #E6D5F7;
+    color: #4B0082;
+}
+
+body.fantasy a,
+body.fantasy button {
+    background-color: #7B1FA2;
+    color: white;
+}
+
+body.adventure {
+    background-color: #E8DCC3;
+    color: #5C4033;
+}
+
+body.adventure a,
+body.adventure button {
+    background-color: #8D6E63;
+    color: white;
+}
+
+body.mystery {
+    background-color: #444444;
+    color: #F5F5F5;
+}
+
+body.mystery a,
+body.mystery button {
+    background-color: #212121;
+    color: white;
+}
+
+body.romance {
+    background-color: #FFE4E8;
+    color: #C2185B;
+}
+
+body.romance a,
+body.romance button {
+    background-color: #E91E63;
+    color: white;
+}
+
+body.science-fiction {
+    background-color: #D6F5FF;
+    color: #006064;
+}
+
+body.science-fiction a,
+body.science-fiction button {
+    background-color: #0097A7;
+    color: white;
+}
+
+@media (max-width: 600px) {
+    body {
+        margin: 20px;
+    }
+
+    .top-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .auth-buttons {
+        justify-content: flex-start;
+    }
+
+    input,
+    textarea {
+        width: 100%;
+    }
+}

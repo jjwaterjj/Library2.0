@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Book</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+
+    <h1>Edit Book</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+
+        <label>Title:</label>
+        <input type="text" name="title"
+               value="{{ book['title'] }}" required>
+
+        <label>Author:</label>
+        <input type="text" name="author"
+               value="{{ book['author'] }}" required>
+
+        <label>Year:</label>
+        <input type="number" name="year"
+               value="{{ book['year'] }}" required>
+
+        <label>Genre:</label>
+        <input type="text" name="genre"
+               value="{{ book['genre'] }}" required>
+
+        <label>Description:</label>
+        <textarea name="description" required>{{ book['description'] }}</textarea>
+
+        {% if book['image'] %}
+
+            <p>Current Image:</p>
+
+            <img
+                src="{{ url_for('static', filename='images/' + book['image']) }}"
+                alt="{{ book['title'] }}"
+                class="book-image"
+            >
+
+        {% endif %}
+
+        <label>Change Image:</label>
+        <input type="file"
+               name="image"
+               accept="image/png, image/jpeg, image/gif, image/webp">
+
+        <button type="submit">Save Changes</button>
+
+    </form>
+
+    <a href="{{ url_for('book', id=book['id']) }}">Cancel</a>
+
+</body>
+</html>

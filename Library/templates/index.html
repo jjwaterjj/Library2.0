@@ -29,6 +29,10 @@
                     <span class="admin-badge">ADMIN</span>
                 {% endif %}
 
+                <a href="{{ url_for('my_books') }}">
+                    My Books
+                </a>
+
                 <form method="POST"
                       action="{{ url_for('auth.logout') }}">
 
@@ -53,6 +57,14 @@
         </div>
 
     </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <p class="flash flash-{{ category }}">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 
 
     <!-- Search -->

@@ -5,13 +5,14 @@ from flask import (
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import sqlite3
+import os
 
 authorization = Blueprint("auth", __name__)
 
 DATABASE = "library.db"
 
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "21436587"
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "21436587")
 
 
 def get_db():

@@ -238,6 +238,23 @@ body.science-fiction button {
     color: white;
 }
 
+.flash {
+    padding: 10px 14px;
+    border-radius: 5px;
+    margin: 12px 0;
+    font-weight: bold;
+}
+
+.flash-ok {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.flash-error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
 @media (max-width: 600px) {
     body {
         margin: 20px;

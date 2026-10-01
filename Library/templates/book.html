@@ -26,20 +26,87 @@
     <h2>{{ book['title'] }}</h2>
 
     <p><strong>ID:</strong> {{ book['id'] }}</p>
+
     <p><strong>Author:</strong> {{ book['author'] }}</p>
+
     <p><strong>Year:</strong> {{ book['year'] }}</p>
+
     <p><strong>Genre:</strong> {{ book['genre'] }}</p>
+
     <p><strong>Description:</strong> {{ book['description'] }}</p>
+
+    <p>
+        <strong>Available Copies:</strong>
+        {{ book['amount'] }}
+    </p>
+
+
+    <!-- Borrowing -->
+
+    {% if session.get('user_id') %}
+
+        {% if borrowed %}
+
+            <p>
+                <strong>You currently have this book borrowed.</strong>
+            </p>
+
+            <form method="POST"
+                  action="{{ url_for('return_book', id=book['id']) }}">
+
+                <button type="submit">
+                    Return Book
+                </button>
+
+            </form>
+
+        {% elif book['amount'] > 0 %}
+
+            <form method="POST"
+                  action="{{ url_for('borrow', id=book['id']) }}">
+
+                <button type="submit">
+                    Borrow Book
+                </button>
+
+            </form>
+
+        {% else %}
+
+            <p>
+                <strong>No copies are currently available.</strong>
+            </p>
+
+        {% endif %}
+
+    {% else %}
+
+        <p>
+            You must
+            <a href="{{ url_for('auth.login') }}">Log In</a>
+            to borrow this book.
+        </p>
+
+    {% endif %}
+
+
+    <!-- Admin Controls -->
 
     {% if session.get('role') == 'admin' %}
 
-        <a href="{{ url_for('edit', id=book['id']) }}">Edit Book</a>
+        <br>
+
+        <a href="{{ url_for('edit', id=book['id']) }}">
+            Edit Book
+        </a>
 
         <form method="POST"
               action="{{ url_for('delete', id=book['id']) }}"
               onsubmit="return confirm('Delete this book?');">
 
-            <button type="submit" class="delete-button">Delete Book</button>
+            <button type="submit" class="delete-button">
+                Delete Book
+            </button>
 
         </form>
 
@@ -47,7 +114,9 @@
 
     <br>
 
-    <a href="{{ url_for('index') }}">Back to Library</a>
+    <a href="{{ url_for('index') }}">
+        Back to Library
+    </a>
 
 </body>
 </html>

@@ -6,6 +6,7 @@ from authorization import (
     login_required,
     admin_required
 )
+
 from werkzeug.utils import secure_filename
 import os
 import sqlite3

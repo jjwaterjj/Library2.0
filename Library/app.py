@@ -6,10 +6,10 @@ from authorization import (
     login_required,
     admin_required
 )
-
 from werkzeug.utils import secure_filename
 import os
 import sqlite3
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
@@ -381,9 +381,149 @@ def book(id):
     )
 
 
+def has_overdue_book(user_id):
+    """
+    Check whether the user has a book that has been borrowed
+    for more than 5 minutes.
+    """
+
+    conn = get_db()
+
+    borrowed_books = conn.execute("""
+        SELECT borrowed_at
+        FROM borrowed_books
+        WHERE user_id = ?
+    """, (user_id,)).fetchall()
+
+    conn.close()
+
+    now = datetime.utcnow()
+
+    for book in borrowed_books:
+        borrowed_time = datetime.strptime(
+            book["borrowed_at"],
+            "%Y-%m-%d %H:%M:%S"
+        )
+
+        deadline = borrowed_time + timedelta(minutes=5)
+
+        if now > deadline:
+            return True
+
+    return False
+
+
 @app.route("/borrow/<int:id>", methods=["POST"])
 @login_required
-def borrow(id):
+def borrow_book(id):
+
+    user_id = session["user_id"]
+
+    # A user cannot borrow another book if they have
+    # kept a previous book for more than 5 minutes.
+    if has_overdue_book(user_id):
+        flash(
+            "You have a book that is overdue. "
+            "Return it before borrowing another book.",
+            "error"
+        )
+        return redirect(url_for("index"))
+
+    conn = get_db()
+
+    book = conn.execute(
+        "SELECT * FROM books WHERE id = ?",
+        (id,)
+    ).fetchone()
+
+    if not book:
+        conn.close()
+        flash("Book does not exist.", "error")
+        return redirect(url_for("index"))
+
+    # Check if this user already borrowed the book.
+    borrowed = conn.execute("""
+        SELECT id
+        FROM borrowed_books
+        WHERE user_id = ? AND book_id = ?
+    """, (
+        user_id,
+        id
+    )).fetchone()
+
+    if borrowed:
+        conn.close()
+        flash("You already borrowed this book.", "error")
+        return redirect(url_for("book", id=id))
+
+    # Only take a copy if one is still available.
+    # This protects against two people trying to take
+    # the last copy at the same time.
+    cursor = conn.execute("""
+        UPDATE books
+        SET amount = amount - 1
+        WHERE id = ? AND amount > 0
+    """, (id,))
+
+    if cursor.rowcount == 0:
+        conn.rollback()
+        conn.close()
+        flash(
+            "No copies of this book are available.",
+            "error"
+        )
+        return redirect(url_for("book", id=id))
+
+    try:
+        conn.execute("""
+            INSERT INTO borrowed_books (user_id, book_id)
+            VALUES (?, ?)
+        """, (
+            user_id,
+            id
+        ))
+
+        conn.commit()
+
+    except sqlite3.IntegrityError:
+        conn.rollback()
+        conn.close()
+        flash("You already borrowed this book.", "error")
+        return redirect(url_for("book", id=id))
+
+    conn.close()
+
+    # Verify that the borrowing record was saved.
+    conn = get_db()
+
+    saved = conn.execute("""
+        SELECT id
+        FROM borrowed_books
+        WHERE user_id = ? AND book_id = ?
+    """, (
+        user_id,
+        id
+    )).fetchone()
+
+    conn.close()
+
+    if not saved:
+        flash(
+            "The book could not be saved as borrowed.",
+            "error"
+        )
+        return redirect(url_for("book", id=id))
+
+    flash("Book borrowed successfully. You have 5 minutes to return it.", "ok")
+    return redirect(url_for("book", id=id))
+
+
+@app.route("/return/<int:id>", methods=["POST"])
+@login_required
+def return_book(id):
+
+    user_id = session["user_id"]
+
     conn = get_db()
 
     book = conn.execute(
@@ -393,97 +533,80 @@ def borrow(id):
 
     if not book:
         conn.close()
-        return "Book Not Found", 404
+        flash("Book does not exist.", "error")
+        return redirect(url_for("my_books"))
 
-    already_borrowed = conn.execute("""
-        SELECT id
-        FROM borrowed_books
-        WHERE user_id = ? AND book_id = ?
-    """, (
-        session["user_id"],
-        id
-    )).fetchone()
-
-    if already_borrowed:
-        conn.close()
-        flash("You already borrowed this book.", "error")
-        return redirect(url_for("book", id=id))
-
-    # Atomic decrease: only succeeds if a copy is available
-    cur = conn.execute("""
-        UPDATE books
-        SET amount = amount - 1
-        WHERE id = ? AND amount > 0
-    """, (id,))
-
-    if cur.rowcount == 0:
-        conn.close()
-        flash("No copies available.", "error")
-        return redirect(url_for("book", id=id))
-
-    try:
-        conn.execute("""
-            INSERT INTO borrowed_books
-            (user_id, book_id)
-            VALUES (?, ?)
-        """, (
-            session["user_id"],
-            id
-        ))
-        conn.commit()
-        flash("Book borrowed successfully.", "ok")
-    except sqlite3.IntegrityError:
-        conn.rollback()
-        conn.execute(
-            "UPDATE books SET amount = amount + 1 WHERE id = ?",
-            (id,)
-        )
-        conn.commit()
-        flash("You already borrowed this book.", "error")
-    finally:
-        conn.close()
-
-    return redirect(url_for("book", id=id))
-
-
-@app.route("/return/<int:id>", methods=["POST"])
-@login_required
-def return_book(id):
-    conn = get_db()
-
+    # Check that this user actually borrowed the book.
     borrowed = conn.execute("""
         SELECT id
         FROM borrowed_books
         WHERE user_id = ? AND book_id = ?
     """, (
-        session["user_id"],
+        user_id,
         id
     )).fetchone()
 
     if not borrowed:
         conn.close()
-        flash("You have not borrowed this book.", "error")
-        return redirect(url_for("book", id=id))
+        flash("You did not borrow this book.", "error")
+        return redirect(url_for("my_books"))
 
-    conn.execute("""
-        DELETE FROM borrowed_books
-        WHERE user_id = ? AND book_id = ?
-    """, (
-        session["user_id"],
-        id
-    ))
+    try:
+        # Remove the borrowing record.
+        cursor = conn.execute("""
+            DELETE FROM borrowed_books
+            WHERE user_id = ? AND book_id = ?
+        """, (
+            user_id,
+            id
+        ))
 
-    conn.execute("""
-        UPDATE books
-        SET amount = amount + 1
-        WHERE id = ?
-    """, (id,))
+        if cursor.rowcount == 0:
+            conn.rollback()
+            conn.close()
+            flash("The book was not borrowed by you.", "error")
+            return redirect(url_for("my_books"))
 
-    conn.commit()
+        # Return the copy to the available amount.
+        conn.execute("""
+            UPDATE books
+            SET amount = amount + 1
+            WHERE id = ?
+        """, (id,))
+
+        conn.commit()
+
+    except sqlite3.Error:
+        conn.rollback()
+        conn.close()
+        flash("There was a problem returning the book.", "error")
+        return redirect(url_for("my_books"))
+
     conn.close()
 
+    # Verify that the borrowing record was removed.
+    conn = get_db()
+
+    still_borrowed = conn.execute("""
+        SELECT id
+        FROM borrowed_books
+        WHERE user_id = ? AND book_id = ?
+    """, (
+        user_id,
+        id
+    )).fetchone()
+
+    conn.close()
+
+    if still_borrowed:
+        flash(
+            "The book return could not be verified.",
+            "error"
+        )
+        return redirect(url_for("my_books"))
+
     flash("Book returned successfully.", "ok")
-    return redirect(url_for("book", id=id))
+    return redirect(url_for("my_books"))
 
 
 @app.route("/my-books")

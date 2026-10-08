@@ -60,7 +60,7 @@
             </p>
 
             <form method="POST"
-                  action="{{ url_for('return_book', id=book['id']) }}">
+                action="{{ url_for('borrow_book', id=book['id']) }}">
 
                 <button type="submit">
                     Return Book
@@ -71,7 +71,7 @@
         {% elif book['amount'] > 0 %}
 
             <form method="POST"
-                  action="{{ url_for('borrow', id=book['id']) }}">
+                  action="{{ url_for('borrow_book', id=book['id']) }}">
 
                 <button type="submit">
                     Borrow Book
